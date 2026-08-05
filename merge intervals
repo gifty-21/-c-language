@@ -1,0 +1,65 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// Macro to find the maximum of two numbers
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+
+// Comparison function to sort intervals by their start times
+int compareIntervals(const void* a, const void* b) {
+    int startA = (*(int**)a)[0];
+    int startB = (*(int**)b)[0];
+    if (startA < startB) return -1;
+    if (startA > startB) return 1;
+    return 0;
+}
+
+int** merge(int** intervals, int intervalsSize, int* intervalsColSize, int* returnSize, int** returnColumnSizes) {
+    if (intervalsSize <= 1) {
+        *returnSize = intervalsSize;
+        *returnColumnSizes = (int*)malloc(intervalsSize * sizeof(int));
+        for (int i = 0; i < intervalsSize; i++) {
+            (*returnColumnSizes)[i] = 2;
+        }
+        return intervals; // No blending needed for 0 or 1 interval
+    }
+
+    // Step 1: Sort intervals by start time using qsort
+    qsort(intervals, intervalsSize, sizeof(int*), compareIntervals);
+
+    // Step 2: Allocate memory for the results array (worst case: intervalsSize)
+    int** result = (int**)malloc(intervalsSize * sizeof(int*));
+    *returnColumnSizes = (int*)malloc(intervalsSize * sizeof(int));
+    *returnSize = 0;
+
+    // Push the first interval into the results to initialize
+    result[*returnSize] = (int*)malloc(2 * sizeof(int));
+    result[*returnSize][0] = intervals[0][0];
+    result[*returnSize][1] = intervals[0][1];
+    (*returnColumnSizes)[*returnSize] = 2;
+    (*returnSize)++;
+
+    // Step 3: Iterate through the remaining intervals and merge if necessary
+    for (int i = 1; i < intervalsSize; i++) {
+        int prevEnd = result[*returnSize - 1][1];
+        int currStart = intervals[i][0];
+        int currEnd = intervals[i][1];
+
+        // If the current interval overlaps with the previous one
+        if (currStart <= prevEnd) {
+            result[*returnSize - 1][1] = MAX(prevEnd, currEnd);
+        } else {
+            // No overlap, create a new separate row in the output
+            result[*returnSize] = (int*)malloc(2 * sizeof(int));
+            result[*returnSize][0] = currStart;
+            result[*returnSize][1] = currEnd;
+            (*returnColumnSizes)[*returnSize] = 2;
+            (*returnSize)++;
+        }
+    }
+
+    // Shrink memory allocation to match the actual merged count size
+    result = (int**)realloc(result, (*returnSize) * sizeof(int*));
+    *returnColumnSizes = (int*)realloc(*returnColumnSizes, (*returnSize) * sizeof(int));
+
+    return result;
+}
