@@ -1,0 +1,63 @@
+#include <stdio.h>
+
+#define MAX_SIZE 105
+
+char grid[MAX_SIZE][MAX_SIZE];
+
+int main() {
+    int n, m;
+    
+    // Read dimensions of the grid
+    if (scanf("%d %d", &n, &m) != 2) {
+        return 0;
+    }
+    
+    // Read the character grid
+    for (int i = 0; i < n; i++) {
+        scanf("%s", grid[i]);
+    }
+    
+    int count = 0;
+    
+    // Traverse each cell to look for the phrase "saba"
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < m; j++) {
+            // A word can only start if the current character is 's'
+            if (grid[i][j] == 's') {
+                
+                // 1. Check Horizontal Right
+                if (j + 3 < m) {
+                    if (grid[i][j+1] == 'a' && grid[i][j+2] == 'b' && grid[i][j+3] == 'a') {
+                        count++;
+                    }
+                }
+                
+                // 2. Check Vertical Down
+                if (i + 3 < n) {
+                    if (grid[i+1][j] == 'a' && grid[i+2][j] == 'b' && grid[i+3][j] == 'a') {
+                        count++;
+                    }
+                }
+                
+                // 3. Check Diagonal Down-Right
+                if (i + 3 < n && j + 3 < m) {
+                    if (grid[i+1][j+1] == 'a' && grid[i+2][j+2] == 'b' && grid[i+3][j+3] == 'a') {
+                        count++;
+                    }
+                }
+                
+                // 4. Check Diagonal Up-Right
+                if (i - 3 >= 0 && j + 3 < m) {
+                    if (grid[i-1][j+1] == 'a' && grid[i-2][j+2] == 'b' && grid[i-3][j+3] == 'a') {
+                        count++;
+                    }
+                }
+            }
+        }
+    }
+    
+    // Output total matches found
+    printf("%d\n", count);
+    
+    return 0;
+}
