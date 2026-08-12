@@ -1,0 +1,32 @@
+#include <stdlib.h>
+#include <string.h>
+
+char* convert(char* s, int numRows) {
+    int len = strlen(s);
+    
+    // Edge cases: if numRows is 1 or string is too short, no change is needed
+    if (numRows <= 1 || numRows >= len) {
+        return s;
+    }
+    
+    char* result = (char*)malloc((len + 1) * sizeof(char));
+    int idx = 0;
+    int cycle_len = 2 * numRows - 2;
+    
+    // Process row by row
+    for (int r = 0; r < numRows; r++) {
+        for (int i = 0; i + r < len; i += cycle_len) {
+            // Append the primary character down the vertical column
+            result[idx++] = s[i + r];
+            
+            // Append the diagonal character (not for first or last row)
+            int diag_idx = i + cycle_len - r;
+            if (r != 0 && r != numRows - 1 && diag_idx < len) {
+                result[idx++] = s[diag_idx];
+            }
+        }
+    }
+    
+    result[idx] = '\0'; // Null-terminate the string
+    return result;
+}
