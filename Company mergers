@@ -1,0 +1,76 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX_MARKETS 1000005
+
+// DSU Structure to track company groupings
+int parent[1005];
+
+int find_set(int v) {
+    if (v == parent[v])
+        return v;
+    return parent[v] = find_set(parent[v]); // Path compression
+}
+
+void union_sets(int a, int b) {
+    a = find_set(a);
+    b = find_set(b);
+    if (a != b) {
+        parent[b] = a;
+    }
+}
+
+// Global lookup table to trace which companies control which markets
+// tracks the first two companies seen controlling a market
+int market_owner1[MAX_MARKETS];
+int market_owner2[MAX_MARKETS];
+// tracks total distinct company count for a market
+int market_count[MAX_MARKETS]; 
+
+int main() {
+    int n, m;
+    if (scanf("%d", &n) != 1) return 0;
+    if (scanf("%d", &m) != 1) return 0;
+
+    // Initialize DSU for N companies
+    for (int i = 1; i <= n; i++) {
+        parent[i] = i;
+    }
+
+    // Process inputs and map market ownership
+    for (int i = 1; i <= n; i++) {
+        for (int j = 0; j < m; j++) {
+            int market_id;
+            scanf("%d", &market_id);
+            
+            market_count[market_id]++;
+            if (market_count[market_id] == 1) {
+                market_owner1[market_id] = i;
+            } else if (market_count[market_id] == 2) {
+                market_owner2[market_id] = i;
+            } else {
+                // If a market is controlled by > 2 companies, 
+                // this company must merge with the previous owners.
+                union_sets(market_owner1[market_id], i);
+                union_sets(market_owner2[market_id], i);
+            }
+        }
+    }
+
+    // Count component sizes
+    int component_size[1005] = {0};
+    for (int i = 1; i <= n; i++) {
+        component_size[find_set(i)]++;
+    }
+
+    // Total mergers needed = Sum of (component_size - 1) for all components
+    int total_mergers = 0;
+    for (int i = 1; i <= n; i++) {
+        if (component_size[i] > 0) {
+            total_mergers += (component_size[i] - 1);
+        }
+    }
+
+    printf("%d\n", total_mergers);
+    return 0;
+}
