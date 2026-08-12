@@ -1,0 +1,32 @@
+#include <stdlib.h>
+
+// Removed the duplicate 'struct ListNode' definition block
+
+struct ListNode* addTwoNumbers(struct ListNode* l1, struct ListNode* l2) {
+    struct ListNode dummyHead;
+    dummyHead.val = 0;
+    dummyHead.next = NULL;
+    struct ListNode* current = &dummyHead;
+    int carry = 0;
+    
+    while (l1 != NULL || l2 != NULL || carry != 0) {
+        int val1 = (l1 != NULL) ? l1->val : 0;
+        int val2 = (l2 != NULL) ? l2->val : 0;
+        
+        int total = val1 + val2 + carry;
+        carry = total / 10;
+        
+        // Dynamically allocate new result node
+        struct ListNode* newNode = (struct ListNode*)malloc(sizeof(struct ListNode));
+        newNode->val = total % 10;
+        newNode->next = NULL;
+        
+        current->next = newNode;
+        current = current->next;
+        
+        if (l1 != NULL) l1 = l1->next;
+        if (l2 != NULL) l2 = l2->next;
+    }
+    
+    return dummyHead.next;
+}
