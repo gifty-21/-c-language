@@ -1,0 +1,29 @@
+#include <string.h>
+
+#define MAX(a, b) (((a) > (b)) ? (a) : (b))
+
+int lengthOfLongestSubstring(char* s) {
+    // Array to store the last seen index of each character, initialized to -1
+    int last_seen[128];
+    memset(last_seen, -1, sizeof(last_seen));
+    
+    int max_len = 0;
+    int left = 0;
+    
+    for (int right = 0; s[right] != '\0'; right++) {
+        unsigned char current_char = s[right];
+        
+        // If the character was seen within the current window, move the left pointer
+        if (last_seen[current_char] >= left) {
+            left = last_seen[current_char] + 1;
+        }
+        
+        // Update the last seen position of the character
+        last_seen[current_char] = right;
+        
+        // Calculate and update the maximum length found so far
+        max_len = MAX(max_len, right - left + 1);
+    }
+    
+    return max_len;
+}
