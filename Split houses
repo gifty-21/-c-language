@@ -1,0 +1,30 @@
+#include <stdio.h>
+
+#define MAX_SIZE 25
+
+int main() {
+    int n;
+    if (scanf("%d", &n) != 1) return 0;
+    
+    char s[MAX_SIZE];
+    scanf("%s", s);
+    
+    // Check if there are any two adjacent houses
+    for (int i = 0; i < n - 1; i++) {
+        if (s[i] == 'H' && s[i + 1] == 'H') {
+            printf("NO\n");
+            return 0;
+        }
+    }
+    
+    // If valid, replace all empty dots '.' with fences 'B'
+    printf("YES\n");
+    for (int i = 0; i < n; i++) {
+        if (s[i] == '.') {
+            s[i] = 'B';
+        }
+    }
+    
+    printf("%s\n", s);
+    return 0;
+}
