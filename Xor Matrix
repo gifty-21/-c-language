@@ -1,0 +1,135 @@
+#include <stdio.h>
+#include <stdbool.h>
+
+#define MAXN 505
+#define LOGN 10
+
+int M[MAXN][MAXN];
+int T[MAXN][MAXN];
+int DP[MAXN][MAXN];
+
+// Flattening the 4D Sparse Table to optimize cache performance and stack usage
+// Dimensions: [LOGN][MAXN][LOGN][MAXN] -> [10][505][10][505]
+int st[LOGN][MAXN][LOGN][MAXN];
+int lg[MAXN];
+
+// Helper macros to find minimum and maximum values
+#define MIN(a, b) (((a) < (b)) ? (a) : (b))
+#define MIN3(a, b, c) (MIN(MIN((a), (b)), (c)))
+#define MAX(a, b) (((a) > (b)) ? (a) : (b))
+
+// Precompute base-2 logarithms for O(1) table indexing
+void precompute_logs(int n) {
+    lg[1] = 0;
+    for (int i = 2; i <= n; i++) {
+        lg[i] = lg[i / 2] + 1;
+    }
+}
+
+// Build the 2D Sparse Table for Range Maximum Queries
+void build_2d_sparse_table(int n) {
+    for (int r = 1; r <= n; r++) {
+        for (int c = 1; c <= n; c++) {
+            st[0][r][0][c] = DP[r][c];
+        }
+    }
+
+    // Build sparse table row-wise (1D RMQ on columns for each row)
+    for (int r = 1; r <= n; r++) {
+        for (int j = 1; (1 << j) <= n; j++) {
+            for (int c = 1; c + (1 << j) - 1 <= n; c++) {
+                st[0][r][j][c] = MAX(st[0][r][j - 1][c], st[0][r][j - 1][c + (1 << (j - 1))]);
+            }
+        }
+    }
+
+    // Build sparse table column-wise across the row intervals
+    for (int i = 1; (1 << i) <= n; i++) {
+        for (int r = 1; r + (1 << i) - 1 <= n; r++) {
+            for (int j = 0; (1 << j) <= n; j++) {
+                for (int c = 1; c + (1 << j) - 1 <= n; c++) {
+                    st[i][r][j][c] = MAX(st[i - 1][r][j][c], st[i - 1][r + (1 << (i - 1))][j][c]);
+                }
+            }
+        }
+    }
+}
+
+// Query the maximum element in submatrix [r1, c1] to [r2, c2] in O(1)
+int query_max(int r1, int c1, int r2, int c2) {
+    if (r1 > r2 || c1 > c2) return 0;
+    int kx = lg[r2 - r1 + 1];
+    int ky = lg[c2 - c1 + 1];
+    
+    int max1 = MAX(st[kx][r1][ky][c1], st[kx][r1][ky][c2 - (1 << ky) + 1]);
+    int max2 = MAX(st[kx][r2 - (1 << kx) + 1][ky][c1], st[kx][r2 - (1 << kx) + 1][ky][c2 - (1 << ky) + 1]);
+    
+    return MAX(max1, max2);
+}
+
+void solve() {
+    int n;
+    if (scanf("%d", &n) != 1) return;
+
+    precompute_logs(n);
+
+    for (int i = 1; i <= n; i++) {
+        for (int j = 1; j <= n; j++) {
+            scanf("%d", &M[i][j]);
+            // Convert alternating problem to maximum identical submatrix problem
+            T[i][j] = M[i][j] ^ (i % 2) ^ (j % 2);
+        }
+    }
+
+    // Compute maximum size square ending at (i, j) using Dynamic Programming
+    for (int i = 1; i <= n; i++) {
+        for (int j = 1; j <= n; j++) {
+            if (i == 1 || j == 1) {
+                DP[i][j] = 1;
+            } else if (T[i][j] == T[i - 1][j] && T[i][j] == T[i][j - 1] && T[i][j] == T[i - 1][j - 1]) {
+                DP[i][j] = MIN3(DP[i - 1][j], DP[i][j - 1], DP[i - 1][j - 1]) + 1;
+            } else {
+                DP[i][j] = 1;
+            }
+        }
+    }
+
+    build_2d_sparse_table(n);
+
+    int q;
+    if (scanf("%d", &q) != 1) return;
+    
+    while (q--) {
+        int x1, y1, x2, y2;
+        scanf("%d %d %d %d", &x1, &y1, &x2, &y2);
+
+        int low = 1, high = MIN(x2 - x1 + 1, y2 - y1 + 1);
+        int ans = 1;
+
+        // Binary Search on answer space
+        while (low <= high) {
+            int mid = low + (high - low) / 2;
+            
+            // Query only corners capable of fitting a 'mid' sized square inside constraints
+            int max_val = query_max(x1 + mid - 1, y1 + mid - 1, x2, y2);
+
+            if (max_val >= mid) {
+                ans = mid;
+                low = mid + 1; // Look for larger squares
+            } else {
+                high = mid - 1;
+            }
+        }
+        printf("%d\n", ans);
+    }
+}
+
+int main() {
+    int t;
+    if (scanf("%d", &t) == 1) {
+        while (t--) {
+            solve();
+        }
+    }
+    return 0;
+}
