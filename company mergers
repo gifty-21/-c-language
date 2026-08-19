@@ -1,0 +1,148 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+
+#define MAX_N 5
+#define MAX_M 3
+
+int N, M;
+int market_grid[MAX_N][MAX_M];
+
+// Structure to hold a state in BFS
+typedef struct {
+    int groups[MAX_N]; // Array of company groups (each bitmask represents a group)
+    int group_count;   // Total active merged groups
+    int mergers;       // Number of mergers done to reach this state
+} State;
+
+// Checks if the current state satisfies the condition
+bool is_valid(State *state) {
+    // Collect markets for each merged group
+    // combined_markets[i] will store the union of all markets in group i
+    int combined_markets[MAX_N][MAX_M * MAX_N];
+    int sizes[MAX_N] = {0};
+
+    for (int i = 0; i < state->group_count; i++) {
+        int mask = state->groups[i];
+        bool market_seen[100005] = {false}; // Simple unique filter per group
+
+        for (int c = 0; c < N; c++) {
+            if ((mask >> c) & 1) {
+                for (int m = 0; m < M; m++) {
+                    int market_id = market_grid[c][m];
+                    // Ensure each market is only added once per merged group
+                    if (!market_seen[market_id]) {
+                        market_seen[market_id] = true;
+                        combined_markets[i][sizes[i]++] = market_id;
+                    }
+                }
+            }
+        }
+    }
+
+    // Count how many unique groups control each market globally
+    // Using a basic frequency array (assuming market IDs are small or moderately sized)
+    // If market IDs can be huge up to 10^9, a hash map or sorting is preferred.
+    // Given standard competitive programming styles, we use a global frequency tracker.
+    static int frequency[1000005] = {0}; // Static to avoid stack overflow
+    static int modified_markets[MAX_M * MAX_N * MAX_N];
+    int mod_count = 0;
+    bool valid = true;
+
+    for (int i = 0; i < state->group_count; i++) {
+        for (int j = 0; j < sizes[i]; j++) {
+            int market = combined_markets[i][j];
+            if (market < 1000005) {
+                if (frequency[market] == 0) {
+                    modified_markets[mod_count++] = market;
+                }
+                frequency[market]++;
+                if (frequency[market] > 2) {
+                    valid = false;
+                }
+            }
+        }
+    }
+
+    // Clean up the frequency array for the next check
+    for (int i = 0; i < mod_count; i++) {
+        frequency[modified_markets[i]] = 0;
+    }
+
+    return valid;
+}
+
+// Queue for BFS
+State queue[10000];
+int head = 0, tail = 0;
+
+void push(State s) {
+    queue[tail++] = s;
+}
+
+State pop() {
+    return queue[head++];
+}
+
+bool is_empty() {
+    return head == tail;
+}
+
+int main() {
+    if (scanf("%d %d", &N, &M) != 2) return 0;
+
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < M; j++) {
+            scanf("%d", &market_grid[i][j]);
+        }
+    }
+
+    // Initial state: Every company is in its own group
+    State initial_state;
+    initial_state.group_count = N;
+    initial_state.mergers = 0;
+    for (int i = 0; i < N; i++) {
+        initial_state.groups[i] = (1 << i); // Bitmask for company i
+    }
+
+    // If the starting layout is already valid, 0 mergers needed
+    if (is_valid(&initial_state)) {
+        printf("0\n");
+        return 0;
+    }
+
+    push(initial_state);
+
+    while (!is_empty()) {
+        State curr = pop();
+
+        // Try merging every pair of active groups
+        for (int i = 0; i < curr.group_count; i++) {
+            for (int j = i + 1; j < curr.group_count; j++) {
+                State next_state;
+                next_state.mergers = curr.mergers + 1;
+                next_state.group_count = 0;
+
+                // Add the newly merged group
+                next_state.groups[next_state.group_count++] = curr.groups[i] | curr.groups[j];
+
+                // Copy over the rest of the unmerged groups
+                for (int k = 0; k < curr.group_count; k++) {
+                    if (k != i && k != j) {
+                        next_state.groups[next_state.group_count++] = curr.groups[k];
+                    }
+                }
+
+                // Check if this new configuration resolves the market limit
+                if (is_valid(&next_state)) {
+                    printf("%d\n", next_state.mergers);
+                    return 0;
+                }
+
+                push(next_state);
+            }
+        }
+    }
+
+    return 0;
+}
