@@ -1,0 +1,54 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+
+void solve() {
+    int n;
+    long long m;
+    if (scanf("%d %lld", &n, &m) != 2) return;
+
+    // min_prefix[r] will store the minimum prefix sum value that yields remainder r
+    // Allocation based on M size dynamically to fit memory limit
+    long long *min_prefix = (long long *)malloc(m * sizeof(long long));
+    for (int i = 0; i < m; i++) {
+        min_prefix[i] = -1; // -1 indicates the remainder has not been seen yet
+    }
+
+    long long current_prefix = 0;
+    long long max_chocolates_per_box = 0;
+
+    // Base case: prefix sum of 0 has a remainder of 0
+    min_prefix[0] = 0;
+
+    for (int i = 0; i < n; i++) {
+        long long val;
+        scanf("%lld", &val);
+        current_prefix += val;
+
+        int rem = current_prefix % m;
+
+        if (min_prefix[rem] != -1) {
+            // Remainder seen before, calculate potential answer
+            long long current_sum = current_prefix - min_prefix[rem];
+            max_chocolates_per_box = MAX(max_chocolates_per_box, current_sum / m);
+        } else {
+            // Store the first (and thus minimum) prefix sum for this remainder
+            min_prefix[rem] = current_prefix;
+        }
+    }
+
+    printf("%lld\n", max_chocolates_per_box);
+    free(min_prefix);
+}
+
+int main() {
+    int t;
+    if (scanf("%d", &t) == 1) {
+        while (t--) {
+            solve();
+        }
+    }
+    return 0;
+}
