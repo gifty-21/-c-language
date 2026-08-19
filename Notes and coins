@@ -1,0 +1,115 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// Enum to denote the type of currency item
+typedef enum {
+    TYPE_COIN,
+    TYPE_NOTE
+} MoneyType;
+
+// --- Coin Structure ---
+typedef struct {
+    int val;
+} Coin;
+
+void setvalue_coin(Coin* c, int val) {
+    c->val = val;
+}
+
+// --- Note Structure ---
+typedef struct {
+    int val;
+} Note;
+
+void setvalue_note(Note* n, int val) {
+    n->val = val;
+}
+
+// --- Generic Bag Structure ---
+// Uses void* array to simulate Java's Generic List behavior
+typedef struct {
+    void** items;
+    int capacity;
+    int size;
+    MoneyType type; // Specifies what type of elements this generic bag holds
+} Bag;
+
+// Initialize the generic bag layout
+Bag* create_bag(int initial_capacity, MoneyType type) {
+    Bag* bag = (Bag*)malloc(sizeof(Bag));
+    bag->items = (void**)malloc(initial_capacity * sizeof(void*));
+    bag->capacity = initial_capacity;
+    bag->size = 0;
+    bag->type = type;
+    return bag;
+}
+
+// Simulates Bag.add(Type t)
+void add_to_bag(Bag* bag, void* item) {
+    if (bag->size >= bag->capacity) {
+        bag->capacity *= 2;
+        bag->items = (void**)realloc(bag->items, bag->capacity * sizeof(void*));
+    }
+    bag->items[bag->size++] = item;
+}
+
+// Simulates Bag.Display()
+void display_bag(Bag* bag) {
+    for (int i = 0; i < bag->size; i++) {
+        if (bag->type == TYPE_COIN) {
+            Coin* c = (Coin*)bag->items[i];
+            printf("%d\n", c->val);
+        } else if (bag->type == TYPE_NOTE) {
+            Note* n = (Note*)bag->items[i];
+            printf("%d\n", n->val);
+        }
+    }
+}
+
+// Free resources allocated for the bags
+void free_bag(Bag* bag) {
+    for (int i = 0; i < bag->size; i++) {
+        free(bag->items[i]);
+    }
+    free(bag->items);
+    free(bag);
+}
+
+int main() {
+    int n;
+    if (scanf("%d", &n) != 1) return 0;
+
+    // Create two distinct generic bag instances from the same template design
+    Bag* coin_bag = create_bag(n, TYPE_COIN);
+    Bag* note_bag = create_bag(n, TYPE_NOTE);
+
+    for (int i = 0; i < n; i++) {
+        char type_str[10];
+        int value;
+        scanf("%s %d", type_str, &value);
+
+        if (strcmp(type_str, "Coin") == 0) {
+            Coin* c = (Coin*)malloc(sizeof(Coin));
+            setvalue_coin(c, value);
+            add_to_bag(coin_bag, c);
+        } else if (strcmp(type_str, "Note") == 0) {
+            Note* n = (Note*)malloc(sizeof(Note));
+            setvalue_note(n, value);
+            add_to_bag(note_bag, n);
+        }
+    }
+
+    // Display keeping the strict required output order
+    printf("Coins :\n");
+    display_bag(coin_bag);
+
+    printf("Notes :\n");
+    display_bag(note_bag);
+
+    // Clean up memory
+    free_bag(coin_bag);
+    free_bag(note_bag);
+
+    return 0;
+}
