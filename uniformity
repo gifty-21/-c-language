@@ -1,0 +1,49 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+
+int main() {
+    int n, k;
+    if (scanf("%d %d", &n, &k) != 2) return 0;
+
+    char *s = (char *)malloc((n + 1) * sizeof(char));
+    if (scanf("%s", s) != 1) {
+        free(s);
+        return 0;
+    }
+
+    int max_uniformity = 0;
+    char targets[] = {'a', 'b', 'c'};
+
+    // Check the sliding window for each target character
+    for (int t = 0; t < 3; t++) {
+        char target = targets[t];
+        int left = 0;
+        int mismatch_count = 0;
+
+        for (int right = 0; right < n; right++) {
+            if (s[right] != target) {
+                mismatch_count++;
+            }
+
+            // Shrink the window from the left if we exceed K changes
+            while (mismatch_count > k) {
+                if (s[left] != target) {
+                    mismatch_count--;
+                }
+                left++;
+            }
+
+            // Calculate the valid window size
+            max_uniformity = MAX(max_uniformity, right - left + 1);
+        }
+    }
+
+    printf("%d\n", max_uniformity);
+
+    free(s);
+    return 0;
+}
+
+ 
