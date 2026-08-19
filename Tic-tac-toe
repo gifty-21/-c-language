@@ -1,0 +1,76 @@
+#include <stdio.h>
+#include <stdbool.h>
+
+// Checks if a specific player has won the game
+bool check_win(char board[3][3], char player) {
+    // Check rows and columns
+    for (int i = 0; i < 3; i++) {
+        if (board[i][0] == player && board[i][1] == player && board[i][2] == player) return true;
+        if (board[0][i] == player && board[1][i] == player && board[2][i] == player) return true;
+    }
+    // Check diagonals
+    if (board[0][0] == player && board[1][1] == player && board[2][2] == player) return true;
+    if (board[0][2] == player && board[1][1] == player && board[2][0] == player) return true;
+
+    return false;
+}
+
+int main() {
+    char board[3][3];
+    int count_x = 0, count_o = 0, count_empty = 0;
+
+    // Read the 3x3 board layout
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            // scanf skipping whitespace to read single characters cleanly
+            if (scanf(" %c", &board[i][j]) != 1) return 0;
+            if (board[i][j] == 'X') count_x++;
+            else if (board[i][j] == 'O') count_o++;
+            else count_empty++;
+        }
+    }
+
+    bool x_won = check_win(board, 'X');
+    bool o_won = check_win(board, 'O');
+
+    // Rule 1: Turn counts must be structurally valid
+    if (count_x < count_o || count_x > count_o + 1) {
+        printf("Wait, what?\n");
+        return 0;
+    }
+
+    // Rule 2: Both players cannot win simultaneously
+    if (x_won && o_won) {
+        printf("Wait, what?\n");
+        return 0;
+    }
+
+    // Rule 3: If X won, it must have been X's final placing move
+    if (x_won && count_x != count_o + 1) {
+        printf("Wait, what?\n");
+        return 0;
+    }
+
+    // Rule 4: If O won, it must have been O's final placing move
+    if (o_won && count_x != count_o) {
+        printf("Wait, what?\n");
+        return 0;
+    }
+
+    // Determine and output the correct status state
+    if (x_won) {
+        printf("X won.\n");
+    } else if (o_won) {
+        printf("O won.\n");
+    } else if (count_empty == 0) {
+        printf("It is a draw.\n");
+    } else {
+        if (count_x == count_o) {
+            printf("X's turn.\n");
+        } else {
+            printf("O's turn.\n");
+        }
+    }
+
+    return 0;
+}
