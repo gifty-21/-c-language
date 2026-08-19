@@ -1,0 +1,21 @@
+#include <stdio.h>
+
+int main() {
+    long long n;
+    if (scanf("%lld", &n) != 1) return 0;
+
+    // Case 1: If n is odd, n-2 is always coprime to n
+    if (n % 2 != 0) {
+        printf("%lld\n", n - 2);
+    } 
+    // Case 2: If n is even and not a multiple of 3, n-3 is coprime to n
+    else if (n % 3 != 0) {
+        printf("%lld\n", n - 3);
+    } 
+    // Case 3: If n is a multiple of 6, n-5 is coprime to n
+    else {
+        printf("%lld\n", n - 5);
+    }
+
+    return 0;
+}
