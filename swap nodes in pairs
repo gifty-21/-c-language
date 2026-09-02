@@ -1,0 +1,28 @@
+#include <stdlib.h>
+
+
+struct ListNode* swapPairs(struct ListNode* head) {
+
+    if (head == NULL || head->next == NULL) {
+        return head;
+    }
+
+    struct ListNode dummy;
+    dummy.val = 0;
+    dummy.next = head;
+    
+    struct ListNode* point = &dummy;
+    
+    while (point->next != NULL && point->next->next != NULL) {
+        
+        struct ListNode* first = point->next;
+        struct ListNode* second = point->next->next;
+        
+        point->next = second;
+        first->next = second->next;
+        second->next = first;
+    
+        point = first;
+    }
+    return dummy.next;
+}
