@@ -1,0 +1,80 @@
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct {
+    char word[31];
+    int count;
+} WordFreq;
+
+int findWord(WordFreq* map, int mapSize, const char* str, int len) {
+    for (int i = 0; i < mapSize; i++) {
+        if (strncmp(map[i].word, str, len) == 0 && map[i].word[len] == '\0') {
+            return i;
+        }
+    }
+    return -1;
+}
+
+int* findSubstring(char* s, char** words, int wordsSize, int* returnSize) {
+    *returnSize = 0;
+    int sLen = strlen(s);
+    if (sLen == 0 || wordsSize == 0) return NULL;
+    
+    int wordLen = strlen(words[0]);
+    int totalWordsLen = wordsSize * wordLen;
+    if (sLen < totalWordsLen) return NULL;
+    
+    int* result = (int*)malloc(sLen * sizeof(int));
+    
+    WordFreq* targetMap = (WordFreq*)malloc(wordsSize * sizeof(WordFreq));
+    int mapSize = 0;
+    
+    for (int i = 0; i < wordsSize; i++) {
+        int idx = findWord(targetMap, mapSize, words[i], wordLen);
+        if (idx != -1) {
+            targetMap[idx].count++;
+        } else {
+            strcpy(targetMap[mapSize].word, words[i]);
+            targetMap[mapSize].count = 1;
+            mapSize++;
+        }
+    }
+    
+    int* seenCount = (int*)malloc(mapSize * sizeof(int));
+    
+    for (int i = 0; i < wordLen; i++) {
+        int left = i;
+        int count = 0;
+        memset(seenCount, 0, mapSize * sizeof(int));
+        
+        for (int right = i; right + wordLen <= sLen; right += wordLen) {
+            int idx = findWord(targetMap, mapSize, s + right, wordLen);
+            
+            if (idx != -1) {
+                seenCount[idx]++;
+                count++;
+                
+                while (seenCount[idx] > targetMap[idx].count) {
+                    int leftIdx = findWord(targetMap, mapSize, s + left, wordLen);
+                    seenCount[leftIdx]--;
+                    count--;
+                    left += wordLen;
+                }
+                
+                if (count == wordsSize) {
+                    result[(*returnSize)++] = left;
+                }
+            } else {
+                
+                memset(seenCount, 0, mapSize * sizeof(int));
+                count = 0;
+                left = right + wordLen;
+            }
+        }
+    }
+
+    free(targetMap);
+    free(seenCount);
+    
+    return result;
+}
