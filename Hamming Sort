@@ -1,0 +1,56 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct {
+    int value;
+    int distance;
+} Element;
+
+int count_set_bits(int num) {
+  
+    return __builtin_popcount(num);
+}
+
+int compare(const void *a, const void *b) {
+    Element *elemA = (Element *)a;
+    Element *elemB = (Element *)b;
+    
+    if (elemA->distance != elemB->distance) {
+        return elemA->distance - elemB->distance;
+    }
+    
+    return elemA->value - elemB->value;
+}
+
+void solve() {
+    int N, K;
+    if (scanf("%d %d", &N, &K) != 2) return;
+    
+    Element *A = (Element *)malloc(N * sizeof(Element));
+    
+    for (int i = 0; i < N; i++) {
+        if (scanf("%d", &A[i].value) != 1) break;
+        
+        A[i].distance = count_set_bits(A[i].value ^ K);
+    }
+    
+ 
+    qsort(A, N, sizeof(Element), compare);
+    
+    for (int i = 0; i < N; i++) {
+        printf("%d%s", A[i].value, (i == N - 1) ? "" : " ");
+    }
+    printf("\n");
+    
+    free(A);
+}
+
+int main() {
+    int T;
+    if (scanf("%d", &T) == 1) {
+        while (T--) {
+            solve();
+        }
+    }
+    return 0;
+}
