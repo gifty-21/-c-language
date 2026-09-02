@@ -1,0 +1,47 @@
+#include <stdio.h>
+
+long long solve(int N, int A[]) {
+   
+    if (N == 1) {
+        return (A[0] == 0) ? 0 : -1;
+    }
+
+    long long total_sum = 0;
+    
+    for (int i = 0; i < N; i++) {
+        total_sum += A[i];
+    }
+    
+    if (total_sum % (N - 1) != 0) {
+        return -1;
+    }
+    
+    long long K = total_sum / (N - 1);
+    
+    for (int i = 0; i < N; i++) {
+        if (A[i] > K) {
+            return -1;
+        }
+    }
+    
+    return K;
+}
+
+int main() {
+    int T;
+    if (scanf("%d", &T) != 1) return 0;
+    
+    while (T--) {
+        int N;
+        if (scanf("%d", &N) != 1) break;
+        
+        int A[N];
+        for (int i = 0; i < N; i++) {
+            if (scanf("%d", &A[i]) != 1) break;
+        }
+        
+        printf("%lld\n", solve(N, A));
+    }
+    
+    return 0;
+}
