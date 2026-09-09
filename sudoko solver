@@ -1,0 +1,48 @@
+#include <stdbool.h>
+
+// Helper function to check if placing 'val' at board[row][col] is valid
+bool isValid(char** board, int row, int col, char val) {
+    for (int i = 0; i < 9; i++) {
+        // Check row
+        if (board[row][i] == val) return false;
+        
+        // Check column
+        if (board[i][col] == val) return false;
+        
+        // Check 3x3 sub-box
+        int boxRow = 3 * (row / 3) + i / 3;
+        int boxCol = 3 * (col / 3) + i % 3;
+        if (board[boxRow][boxCol] == val) return false;
+    }
+    return true;
+}
+
+// Recursive backtracking engine to solve the board
+bool backtrack(char** board) {
+    for (int r = 0; r < 9; r++) {
+        for (int c = 0; c < 9; c++) {
+            // Find an empty cell
+            if (board[r][c] == '.') {
+                // Try digits '1' through '9'
+                for (char val = '1'; val <= '9'; val++) {
+                    if (isValid(board, r, c, val)) {
+                        board[r][c] = val; // Choose
+                        
+                        // Explore downstream choices
+                        if (backtrack(board)) {
+                            return true; // Puzzle solved successfully
+                        }
+                        
+                        board[r][c] = '.'; // Backtrack (unchoose)
+                    }
+                }
+                return false; // Triggers backtracking if no digit fits
+            }
+        }
+    }
+    return true; // Reached when no empty cells remain
+}
+
+void solveSudoku(char** board, int boardSize, int* boardColSize) {
+    backtrack(board);
+}
