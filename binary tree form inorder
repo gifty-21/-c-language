@@ -1,0 +1,54 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     struct TreeNode *left;
+ *     struct TreeNode *right;
+ * };
+ */
+
+// Helper function to allocate a new tree node
+struct TreeNode* createNode(int val) {
+    struct TreeNode* node = (struct TreeNode*)malloc(sizeof(struct TreeNode));
+    node->val = val;
+    node->left = NULL;
+    node->right = NULL;
+    return node;
+}
+
+// Recursive helper function to build the tree
+struct TreeNode* buildTreeHelper(int* postorder, int* postIdx, int* inorder, int inStart, int inEnd) {
+    // Base case: if there are no elements to construct the subtree
+    if (inStart > inEnd) {
+        return NULL;
+    }
+
+    // The current element at postIdx is the root node
+    int rootVal = postorder[*postIdx];
+    struct TreeNode* root = createNode(rootVal);
+    (*postIdx)--; // Move backwards to find the next root element
+
+    // Find the index of this root value in the inorder array
+    int rootInorderIdx = inStart;
+    while (rootInorderIdx <= inEnd && inorder[rootInorderIdx] != rootVal) {
+        rootInorderIdx++;
+    }
+
+    // CRUCIAL: Process the RIGHT subtree first because we are moving backwards through postorder
+    // Elements to the right of rootInorderIdx in inorder belong to the right subtree
+    root->right = buildTreeHelper(postorder, postIdx, inorder, rootInorderIdx + 1, inEnd);
+    
+    // Elements to the left of rootInorderIdx in inorder belong to the left subtree
+    root->left = buildTreeHelper(postorder, postIdx, inorder, inStart, rootInorderIdx - 1);
+
+    return root;
+}
+
+struct TreeNode* buildTree(int* inorder, int inorderSize, int* postorder, int postorderSize) {
+    // Start from the very last element of the postorder array
+    int postIdx = postorderSize - 1;
+    return buildTreeHelper(postorder, &postIdx, inorder, 0, inorderSize - 1);
+}
