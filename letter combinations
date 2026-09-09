@@ -1,0 +1,71 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// Global phone mapping
+const char* phone_map[] = {
+    "",     // 0
+    "",     // 1
+    "abc",  // 2
+    "def",  // 3
+    "ghi",  // 4
+    "jkl",  // 5
+    "mno",  // 6
+    "pqrs", // 7
+    "tuv",  // 8
+    "wxyz"  // 9
+};
+
+void backtrack(char* digits, int index, char* current_path, char** result, int* returnSize) {
+    // Base case: If we reached the end of the digits string
+    if (digits[index] == '\0') {
+        current_path[index] = '\0'; // Null terminate the string
+        result[*returnSize] = strdup(current_path); // Copy to results array
+        (*returnSize)++;
+        return;
+    }
+    
+    // Get the letters corresponding to the current digit
+    int digit_val = digits[index] - '0';
+    const char* letters = phone_map[digit_val];
+    
+    // Loop through each letter mapped to this digit
+    for (int i = 0; letters[i] != '\0'; i++) {
+        current_path[index] = letters[i]; // Choose
+        backtrack(digits, index + 1, current_path, result, returnSize); // Recurse
+    }
+}
+
+/**
+ * Note: The returned array must be malloced, assume caller calls free().
+ */
+char** letterCombinations(char* digits, int* returnSize) {
+    *returnSize = 0;
+    int len = strlen(digits);
+    
+    // Constraint check: if digits is empty, return NULL
+    if (len == 0) {
+        return NULL;
+    }
+    
+    // Step 1: Calculate total possible combinations to allocate exact memory
+    int total_combinations = 1;
+    for (int i = 0; i < len; i++) {
+        int digit_val = digits[i] - '0';
+        total_combinations *= strlen(phone_map[digit_val]);
+    }
+    
+    // Step 2: Allocate memory for the array of string pointers
+    char** result = (char**)malloc(total_combinations * sizeof(char*));
+    
+    // Buffer to track the path of characters during recursion (len + 1 for '\0')
+    char* current_path = (char*)malloc((len + 1) * sizeof(char));
+    
+    // Step 3: Trigger backtracking
+    backtrack(digits, 0, current_path, result, returnSize);
+    
+    // Free the temporary path buffer
+    free(current_path);
+    
+    return result;
+}
