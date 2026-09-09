@@ -1,0 +1,26 @@
+#include <stdbool.h>
+
+// Helper function to calculate the sum of the squares of digits
+int getNext(int num) {
+    int sum = 0;
+    while (num > 0) {
+        int digit = num % 10;
+        sum += digit * digit;
+        num /= 10;
+    }
+    return sum;
+}
+
+bool isHappy(int n) {
+    int slow = n;
+    int fast = getNext(n);
+    
+    // Cycle detection: run until fast catches up to slow, or hits 1
+    while (fast != 1 && slow != fast) {
+        slow = getNext(slow);         // Move 1 step
+        fast = getNext(getNext(fast)); // Move 2 steps
+    }
+    
+    // If fast pointer reached 1, it's a happy number
+    return fast == 1;
+}
