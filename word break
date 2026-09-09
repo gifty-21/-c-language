@@ -1,0 +1,40 @@
+#include <stdio.h>
+#include <stdbool.h>
+#include <string.h>
+
+bool wordBreak(char* s, char** wordDict, int wordDictSize) {
+    int n = strlen(s);
+    
+    // dp[i] will be true if s[0...i-1] can be segmented into dictionary words
+    bool dp[n + 1];
+    memset(dp, false, sizeof(dp));
+    
+    // Base case: empty string can be matched
+    dp[0] = true;
+    
+    // Iterate through all lengths of the prefix string
+    for (int i = 1; i <= n; i++) {
+        for (int j = 0; j < i; j++) {
+            // If the prefix s[0...j-1] is valid, check if s[j...i-1] is a word in the dictionary
+            if (dp[j]) {
+                int target_len = i - j;
+                
+                // Look for a matching word in the dictionary
+                for (int k = 0; k < wordDictSize; k++) {
+                    if ((int)strlen(wordDict[k]) == target_len && 
+                        strncmp(s + j, wordDict[k], target_len) == 0) {
+                        dp[i] = true;
+                        break; // Found a match for this index i, no need to check other j's
+                    }
+                }
+                
+                // If dp[i] is already set to true, break early out of the inner j loop
+                if (dp[i]) {
+                    break;
+                }
+            }
+        }
+    }
+    
+    return dp[n];
+}
