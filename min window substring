@@ -1,0 +1,72 @@
+#include <stdio.h>
+#include <string.h>
+#include <limits.h>
+
+char* minWindow(char* s, char* t) {
+    int s_len = strlen(s);
+    int t_len = strlen(t);
+    
+    if (s_len == 0 || t_len == 0 || s_len < t_len) {
+        return "";
+    }
+
+    // Frequency maps for characters in ASCII range
+    int target_counts[128] = {0};
+    int window_counts[128] = {0};
+
+    // Count unique characters required from t
+    int unique_t_chars = 0;
+    for (int i = 0; i < t_len; i++) {
+        if (target_counts[(unsigned char)t[i]] == 0) {
+            unique_t_chars++;
+        }
+        target_counts[(unsigned char)t[i]]++;
+    }
+
+    int left = 0, right = 0;
+    int formed = 0; // Tracks how many unique characters meet the required frequency
+    
+    // Variables to track the minimum window properties
+    int min_len = INT_MAX;
+    int start_idx = 0;
+
+    while (right < s_len) {
+        char c = s[right];
+        window_counts[(unsigned char)c]++;
+
+        // If the character is part of t and its frequency matches the target frequency
+        if (target_counts[(unsigned char)c] > 0 && window_counts[(unsigned char)c] == target_counts[(unsigned char)c]) {
+            formed++;
+        }
+
+        // Try to shrink the window from the left when it contains all required characters
+        while (left <= right && formed == unique_t_chars) {
+            c = s[left];
+
+            // Save the smallest window bounds
+            if (right - left + 1 < min_len) {
+                min_len = right - left + 1;
+                start_idx = left;
+            }
+
+            // The character at the left pointer is being removed from the window
+            window_counts[(unsigned char)c]--;
+            if (target_counts[(unsigned char)c] > 0 && window_counts[(unsigned char)c] < target_counts[(unsigned char)c]) {
+                formed--;
+            }
+
+            left++;
+        }
+
+        right++;
+    }
+
+    // If min_len wasn't updated, no valid window exists
+    if (min_len == INT_MAX) {
+        return "";
+    }
+
+    // Destructively truncate s to return the substring safely in place
+    s[start_idx + min_len] = '\0';
+    return &s[start_idx];
+}
