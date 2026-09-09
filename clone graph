@@ -1,0 +1,57 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+/**
+ * Definition for a Node.
+ * struct Node {
+ *     int val;
+ *     int numNeighbors;
+ *     struct Node** neighbors;
+ * };
+ */
+
+// Recursive helper function to execute DFS cloning
+struct Node* dfsClone(struct Node* node, struct Node** visited) {
+    if (node == NULL) {
+        return NULL;
+    }
+    
+    // If the node has already been cloned, return its cached copy
+    if (visited[node->val] != NULL) {
+        return visited[node->val];
+    }
+    
+    // Allocate memory for the cloned node
+    struct Node* clone = (struct Node*)malloc(sizeof(struct Node));
+    clone->val = node->val;
+    clone->numNeighbors = node->numNeighbors;
+    
+    // Allocate memory for the neighbors array pointer block
+    if (clone->numNeighbors > 0) {
+        clone->neighbors = (struct Node**)malloc(clone->numNeighbors * sizeof(struct Node*));
+    } else {
+        clone->neighbors = NULL;
+    }
+    
+    // Cache the clone reference BEFORE visiting neighbors to handle cycles safely
+    visited[node->val] = clone;
+    
+    // Recursively clone and link all neighbors
+    for (int i = 0; i < node->numNeighbors; i++) {
+        clone->neighbors[i] = dfsClone(node->neighbors[i], visited);
+    }
+    
+    return clone;
+}
+
+struct Node* cloneGraph(struct Node* node) {
+    if (node == NULL) {
+        return NULL;
+    }
+    
+    // Visited array to track cloned nodes (Constraint: 1 <= val <= 100)
+    // Initialize all pointers to NULL
+    struct Node* visited[101] = { NULL };
+    
+    return dfsClone(node, visited);
+}
