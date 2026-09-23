@@ -1,0 +1,44 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_DIGITS 1000005 // Adjust size based on actual problem constraints
+
+char number[MAX_DIGITS];
+char stack[MAX_DIGITS];
+
+int main() {
+    int k;
+    // Read the string representation of the integer and the number of deletions
+    if (scanf("%s %d", number, &k) != 2) {
+        return 0;
+    }
+    
+    int len = strlen(number);
+    int top = -1;
+    
+    for (int i = 0; i < len; i++) {
+        // While stack is not empty, we still need to delete digits (k > 0),
+        // and the current digit is larger than the digit at the top of the stack
+        while (top >= 0 && k > 0 && number[i] > stack[top]) {
+            top--;  // Drop the smaller digit
+            k--;    // Decrement the deletion count
+        }
+        // Push the current digit onto our stack
+        stack[++top] = number[i];
+    }
+    
+    // If we still need to delete more digits, remove them from the end
+    while (k > 0 && top >= 0) {
+        top--;
+        k--;
+    }
+    
+    // Null-terminate the string inside the stack
+    stack[top + 1] = '\0';
+    
+    // Print the final maximum number
+    printf("%s\n", stack);
+    
+    return 0;
+}
