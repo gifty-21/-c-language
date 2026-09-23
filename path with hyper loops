@@ -1,0 +1,141 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define INF 1000000000000000LL // A very large value representing infinity
+
+typedef struct Edge {
+    int to;
+    int weight;
+    struct Edge* next;
+} Edge;
+
+typedef struct {
+    int vertex;
+    long long cost;
+} HeapNode;
+
+Edge** head;
+long long* dist;
+
+void add_edge(int u, int v, int w) {
+    Edge* e = (Edge*)malloc(sizeof(Edge));
+    e->to = v;
+    e->weight = w;
+    e->next = head[u];
+    head[u] = e;
+}
+
+// Minimal Min-Heap implementation for Dijkstra's Priority Queue
+void swap(HeapNode* a, HeapNode* b) {
+    HeapNode temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
+void min_heapify(HeapNode* heap, int size, int i) {
+    int smallest = i;
+    int left = 2 * i + 1;
+    int right = 2 * i + 2;
+
+    if (left < size && heap[left].cost < heap[smallest].cost) smallest = left;
+    if (right < size && heap[right].cost < heap[smallest].cost) smallest = right;
+
+    if (smallest != i) {
+        swap(&heap[i], &heap[smallest]);
+        min_heapify(heap, size, smallest);
+    }
+}
+
+void push(HeapNode* heap, int* size, int v, long long c) {
+    heap[*size].vertex = v;
+    heap[*size].cost = c;
+    int i = *size;
+    (*size)++;
+
+    while (i != 0 && heap[(i - 1) / 2].cost > heap[i].cost) {
+        swap(&heap[i], &heap[(i - 1) / 2]);
+        i = (i - 1) / 2;
+    }
+}
+
+HeapNode pop(HeapNode* heap, int* size) {
+    HeapNode root = heap[0];
+    heap[0] = heap[*size - 1];
+    (*size)--;
+    min_heapify(heap, *size, 0);
+    return root;
+}
+
+int main() {
+    int n, m, h, start, end;
+    if (scanf("%d %d %d %d %d", &n, &m, &h, &start, &end) != 5) return 0;
+
+    head = (Edge**)calloc((n + 1), sizeof(Edge*));
+    dist = (long long*)malloc((n + 1) * sizeof(long long));
+
+    // Read standard roads (cost 1 dollar)
+    for (int i = 0; i < m; i++) {
+        int u, v;
+        scanf("%d %d", &u, &v);
+        add_edge(u, v, 1);
+        add_edge(v, u, 1);
+    }
+
+    // Read hyperloops (cost 2 dollars)
+    for (int i = 0; i < h; i++) {
+        int u, v;
+        scanf("%d %d", &u, &v);
+        add_edge(u, v, 2);
+        add_edge(v, u, 2);
+    }
+
+    // Initialize distances
+    for (int i = 1; i <= n; i++) {
+        dist[i] = INF;
+    }
+    dist[start] = 0;
+
+    // Dijkstra tracking variables
+    HeapNode* heap = (HeapNode*)malloc((m + h + n) * 2 * sizeof(HeapNode));
+    int heap_size = 0;
+    push(heap, &heap_size, start, 0);
+
+    while (heap_size > 0) {
+        HeapNode curr = pop(heap, &heap_size);
+        int u = curr.vertex;
+        long long d = curr.cost;
+
+        if (u == end) break;
+        if (d > dist[u]) continue;
+
+        for (Edge* e = head[u]; e != NULL; e = e->next) {
+            int v = e->to;
+            int weight = e->weight;
+            if (dist[u] + weight < dist[v]) {
+                dist[v] = dist[u] + weight;
+                push(heap, &heap_size, v, dist[v]);
+            }
+        }
+    }
+
+    if (dist[end] == INF) {
+        printf("-1\n");
+    } else {
+        printf("%lld\n", dist[end]);
+    }
+
+    // Clean up memory allocations
+    for (int i = 1; i <= n; i++) {
+        Edge* curr = head[i];
+        while (curr != NULL) {
+            Edge* tmp = curr;
+            curr = curr->next;
+            free(tmp);
+        }
+    }
+    free(head);
+    free(dist);
+    free(heap);
+
+    return 0;
+}
