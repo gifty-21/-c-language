@@ -1,0 +1,84 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MOD 1000000007
+
+typedef struct Edge {
+    int to;
+    struct Edge* next;
+} Edge;
+
+Edge** head;
+int* in_degree;
+long long* dp;
+
+void add_edge(int u, int v) {
+    Edge* e = (Edge*)malloc(sizeof(Edge));
+    e->to = v;
+    e->next = head[u];
+    head[u] = e;
+}
+
+int main() {
+    int n, m;
+    if (scanf("%d %d", &n, &m) != 2) return 0;
+
+    head = (Edge**)calloc((n + 1), sizeof(Edge*));
+    in_degree = (int*)calloc((n + 1), sizeof(int));
+    dp = (long long*)calloc((n + 1), sizeof(long long));
+
+    for (int i = 0; i < m; i++) {
+        int u, v;
+        scanf("%d %d", &u, &v);
+        add_edge(u, v);
+        in_degree[v]++;
+    }
+
+    // Kahn's Algorithm for Topological Sort using a queue
+    int* queue = (int*)malloc((n + 1) * sizeof(int));
+    int front = 0, rear = 0;
+
+    for (int i = 1; i <= n; i++) {
+        if (in_degree[i] == 0) {
+            queue[rear++] = i;
+        }
+    }
+
+    // Base case: 1 way to be at the king's starting city (1)
+    dp[1] = 1;
+
+    while (front < rear) {
+        int u = queue[front++];
+
+        for (Edge* e = head[u]; e != NULL; e = e->next) {
+            int v = e->to;
+            
+            // If the current city 'u' is reachable from city 1, propagate its paths
+            dp[v] = (dp[v] + dp[u]) % MOD;
+
+            in_degree[v]--;
+            if (in_degree[v] == 0) {
+                queue[rear++] = v;
+            }
+        }
+    }
+
+    // Print the number of ways to reach the queen's city (N)
+    printf("%lld\n", dp[n]);
+
+    // Memory cleanup
+    for (int i = 1; i <= n; i++) {
+        Edge* curr = head[i];
+        while (curr != NULL) {
+            Edge* tmp = curr;
+            curr = curr->next;
+            free(tmp);
+        }
+    }
+    free(head);
+    free(in_degree);
+    free(dp);
+    free(queue);
+
+    return 0;
+}
