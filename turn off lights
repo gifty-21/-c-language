@@ -1,0 +1,57 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// Greedy function to check if window length 'l' can turn off all bulbs within 'k' operations
+int isValid(char* bulbs, int n, int k, int l) {
+    int operations = 0;
+    int i = 0;
+    
+    while (i < n) {
+        if (bulbs[i] == '1') {
+            operations++;
+            // If operations exceed the maximum allowed, this length 'l' is invalid
+            if (operations > k) {
+                return 0;
+            }
+            // Skip the next 'l' bulbs since they are turned OFF by this operation
+            i += l;
+        } else {
+            i++;
+        }
+    }
+    
+    return operations <= k;
+}
+
+int main() {
+    int n, k;
+    if (scanf("%d %d", &n, &k) != 2) return 0;
+    
+    char* bulbs = (char*)malloc((n + 1) * sizeof(char));
+    if (scanf("%s", bulbs) != 1) {
+        free(bulbs);
+        return 0;
+    }
+    
+    // Binary search for the smallest valid 'l'
+    int low = 1;
+    int high = n;
+    int ans = n;
+    
+    while (low <= high) {
+        int mid = low + (high - low) / 2;
+        
+        if (isValid(bulbs, n, k, mid)) {
+            ans = mid;       // 'mid' works, record it as a candidate solution
+            high = mid - 1;  // Try to find a smaller valid length
+        } else {
+            low = mid + 1;   // 'mid' is too small, look for a larger length
+        }
+    }
+    
+    printf("%d\n", ans);
+    
+    free(bulbs);
+    return 0;
+}
