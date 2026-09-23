@@ -1,0 +1,66 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+void solve() {
+    int n, m;
+    if (scanf("%d %d", &n, &m) != 2) return;
+
+    long long* a = (long long*)malloc(n * sizeof(long long));
+    long long total_sum_a = 0;
+    for (int i = 0; i < n; i++) {
+        scanf("%lld", &a[i]);
+        total_sum_a += a[i];
+    }
+
+    long long* b = (long long*)malloc(m * sizeof(long long));
+    long long total_sum_b = 0;
+    for (int i = 0; i < m; i++) {
+        scanf("%lld", &b[i]);
+        total_sum_b += b[i];
+    }
+
+    // If total sums do not match, it is impossible to equalize them
+    if (total_sum_a != total_sum_b) {
+        printf("-1\n");
+        free(a);
+        free(b);
+        return;
+    }
+
+    int i = 0, j = 0;
+    long long sumA = 0, sumB = 0;
+    int max_len = 0;
+
+    while (i < n && j < m) {
+        if (sumA == 0) sumA = a[i];
+        if (sumB == 0) sumB = b[j];
+
+        if (sumA == sumB) {
+            max_len++;
+            sumA = 0;
+            sumB = 0;
+            i++;
+            j++;
+        } else if (sumA < sumB) {
+            i++;
+            if (i < n) sumA += a[i];
+        } else {
+            j++;
+            if (j < m) sumB += b[j];
+        }
+    }
+
+    printf("%d\n", max_len);
+
+    free(a);
+    free(b);
+}
+
+int main() {
+    int t;
+    if (scanf("%d", &t) != 1) return 0;
+    while (t--) {
+        solve();
+    }
+    return 0;
+}
