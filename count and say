@@ -1,0 +1,36 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+char* countAndSay(int n) {
+    if (n <= 0) return "";
+    
+    char* current = (char*)malloc(2 * sizeof(char));
+    strcpy(current, "1");
+    
+    for (int i = 1; i < n; i++) {
+      
+        int len = strlen(current);
+        char* next_str = (char*)malloc((len * 2 + 1) * sizeof(char));
+        int next_idx = 0;
+        
+        int j = 0;
+        while (j < len) {
+            int count = 1;
+           
+            while (j + 1 < len && current[j] == current[j + 1]) {
+                count++;
+                j++;
+            }
+            
+            next_idx += sprintf(&next_str[next_idx], "%d%c", count, current[j]);
+            j++;
+        }
+        
+        next_str[next_idx] = '\0'; 
+        free(current);             
+        current = next_str;        
+    }
+    
+    return current;
+}
