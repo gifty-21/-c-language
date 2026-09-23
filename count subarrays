@@ -1,0 +1,61 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// Helper function to calculate the parity of set bits in a number
+// Returns 1 if odd, 0 if even
+int get_set_bit_parity(long long n) {
+    int count = 0;
+    while (n > 0) {
+        count += (n & 1);
+        n >>= 1;
+    }
+    return count % 2;
+}
+
+void solve() {
+    int n;
+    if (scanf("%d", &n) != 1) return;
+
+    long long current_prefix_xor = 0;
+    
+    // Initialise tracking counts. 
+    // The base prefix P[0] = 0 has an even number of set bits (0 bits).
+    long long even_count = 1; 
+    long long odd_count = 0;
+    long long valid_subarrays = 0;
+
+    for (int i = 0; i < n; i++) {
+        long long val;
+        scanf("%lld", &val);
+        
+        // Update the running prefix XOR
+        current_prefix_xor ^= val;
+        
+        // Determine the parity of the current prefix XOR
+        int parity = get_set_bit_parity(current_prefix_xor);
+        
+        if (parity == 1) {
+            // Odd prefix parity requires pairing with a previous Even prefix parity
+            valid_subarrays += even_count;
+            odd_count++;
+        } else {
+            // Even prefix parity requires pairing with a previous Odd prefix parity
+            valid_subarrays += odd_count;
+            even_count++;
+        }
+    }
+
+    printf("%lld\n", valid_subarrays);
+}
+
+int main() {
+    // Optimise standard input/output streams for fast execution
+    setvbuf(stdout, NULL, _IOFBF, 16384);
+    
+    int t;
+    if (scanf("%d", &t) != 1) return 0;
+    while (t--) {
+        solve();
+    }
+    return 0;
+}
