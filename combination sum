@@ -1,0 +1,59 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct {
+    int** data;
+    int* columnSizes;
+    int size;
+    int capacity;
+} ResultList;
+
+void backtrack(int* candidates, int candidatesSize, int target, int start, 
+               int* currentComb, int combSize, ResultList* res) {
+    
+    if (target == 0) {
+        
+        if (res->size == res->capacity) {
+            res->capacity *= 2;
+            res->data = (int**)realloc(res->data, res->capacity * sizeof(int*));
+            res->columnSizes = (int*)realloc(res->columnSizes, res->capacity * sizeof(int));
+        }
+        
+        res->data[res->size] = (int*)malloc(combSize * sizeof(int));
+        memcpy(res->data[res->size], currentComb, combSize * sizeof(int));
+        res->columnSizes[res->size] = combSize;
+        res->size++;
+        return;
+    }
+    
+    if (target < 0) {
+        return;
+    }
+
+    for (int i = start; i < candidatesSize; i++) {
+      
+        currentComb[combSize] = candidates[i];
+        
+        backtrack(candidates, candidatesSize, target - candidates[i], i, currentComb, combSize + 1, res);
+        
+    }
+}
+
+int** combinationSum(int* candidates, int candidatesSize, int target, int* returnSize, int** returnColumnSizes) {
+    ResultList res;
+    res.capacity = 10; 
+    res.size = 0;
+    res.data = (int**)malloc(res.capacity * sizeof(int*));
+    res.columnSizes = (int*)malloc(res.capacity * sizeof(int));
+
+    int* currentComb = (int*)malloc(target * sizeof(int));
+
+    backtrack(candidates, candidatesSize, target, 0, currentComb, 0, &res);
+
+    free(currentComb);
+
+    *returnSize = res.size;
+    *returnColumnSizes = res.columnSizes;
+    return res.data;
+}
