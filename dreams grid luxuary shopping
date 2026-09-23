@@ -1,0 +1,34 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+int main() {
+    int n, m;
+    if (scanf("%d %d", &n, &m) != 2) return 0;
+
+    long long* price = (long long*)malloc(n * sizeof(long long));
+    for (int i = 0; i < n; i++) {
+        scanf("%lld", &price[i]);
+    }
+
+    // Step 1: Sum up the costs of the first m items
+    long long baseline_wealth = 0;
+    for (int i = 0; i < m; i++) {
+        baseline_wealth += price[i];
+    }
+
+    // Step 2: Find the minimum price among the remaining items from index m to n-1
+    long long min_remaining_price = price[m];
+    for (int i = m + 1; i < n; i++) {
+        if (price[i] < min_remaining_price) {
+            min_remaining_price = price[i];
+        }
+    }
+
+    // Step 3: Compute the maximum initial wealth
+    long long max_initial_wealth = baseline_wealth + min_remaining_price - 1;
+
+    printf("%lld\n", max_initial_wealth);
+
+    free(price);
+    return 0;
+}
