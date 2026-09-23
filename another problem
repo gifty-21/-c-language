@@ -1,0 +1,101 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_CHUNKS 20
+#define MAX_LEN 105
+
+char chunks[MAX_CHUNKS][MAX_LEN];
+int adj[MAX_CHUNKS][MAX_CHUNKS];
+int adj_size[MAX_CHUNKS];
+int visited[MAX_CHUNKS];
+
+char results[5000][MAX_CHUNKS * MAX_LEN];
+int result_count = 0;
+
+// Comparison function for qsort to sort results lexicographically
+int compare_strings(const void* a, const void* b) {
+    return strcmp((const char*)a, (const char*)b);
+}
+
+void dfs(int curr, int count, char* current_str, int n) {
+    // Base Case: All chunks have been visited exactly once
+    if (count == n) {
+        // Avoid inserting duplicate strings
+        for (int i = 0; i < result_count; i++) {
+            if (strcmp(results[i], current_str) == 0) {
+                return;
+            }
+        }
+        strcpy(results[result_count++], current_str);
+        return;
+    }
+
+    int current_len = strlen(current_str);
+
+    for (int i = 0; i < adj_size[curr]; i++) {
+        int v = adj[curr][i];
+        if (!visited[v]) {
+            visited[v] = 1;
+            
+            // Append the non-overlapping portion (skipping the first 4 characters)
+            strcat(current_str, &chunks[v][4]);
+            
+            dfs(v, count + 1, current_str, n);
+            
+            // Backtrack: restore the string by null-terminating at the previous length
+            current_str[current_len] = '\0';
+            visited[v] = 0;
+        }
+    }
+}
+
+int main() {
+    int n;
+    if (scanf("%d", &n) != 1) return 0;
+
+    for (int i = 0; i < n; i++) {
+        scanf("%s", chunks[i]);
+    }
+
+    // Step 1: Build the adjacency list where a directed edge exists if overlap length is 4
+    for (int i = 0; i < n; i++) {
+        adj_size[i] = 0;
+        int len_i = strlen(chunks[i]);
+        if (len_i < 4) continue;
+        
+        for (int j = 0; j < n; j++) {
+            if (i == j) continue;
+            int len_j = strlen(chunks[j]);
+            if (len_j < 4) continue;
+            
+            // Check if the last 4 characters of chunk i match the first 4 characters of chunk j
+            if (strcmp(&chunks[i][len_i - 4], chunks[j]) == 0 || 
+                strncmp(&chunks[i][len_i - 4], chunks[j], 4) == 0) {
+                adj[i][adj_size[i]++] = j;
+            }
+        }
+    }
+
+    // Buffer to reconstruct the string dynamically
+    char current_str[MAX_CHUNKS * MAX_LEN];
+
+    // Step 2: Run DFS from every potential starting chunk
+    for (int i = 0; i < n; i++) {
+        memset(visited, 0, sizeof(visited));
+        visited[i] = 1;
+        strcpy(current_str, chunks[i]);
+        
+        dfs(i, 1, current_str, n);
+    }
+
+    // Step 3: Sort all found distinct unique messages lexicographically
+    qsort(results, result_count, sizeof(results[0]), compare_strings);
+
+    // Step 4: Print outputs
+    for (int i = 0; i < result_count; i++) {
+        printf("%s\n", results[i]);
+    }
+
+    return 0;
+}
