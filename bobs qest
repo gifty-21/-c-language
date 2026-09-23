@@ -1,0 +1,101 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_VAL 100005
+
+int freq1[MAX_VAL];
+int freq2[MAX_VAL];
+
+void solve() {
+    int n, k, x;
+    if (scanf("%d %d %d", &n, &k, &x) != 3) return;
+
+    int* a = (int*)malloc(n * sizeof(int));
+    for (int i = 0; i < n; i++) {
+        scanf("%d", &a[i]);
+    }
+
+    // Clear frequency trackers for the current test case
+    // (Only clear up to maximum possible element value or handle dynamically)
+    // Assuming elements are bounded by 100000 based on standard constraints
+    for (int i = 0; i < n; i++) {
+        if (a[i] < MAX_VAL) {
+            freq1[a[i]] = 0;
+            freq2[a[i]] = 0;
+        }
+    }
+    if (x < MAX_VAL) {
+        freq1[x] = 0;
+        freq2[x] = 0;
+    }
+
+    int l1 = 0, l2 = 0;
+    int dist1 = 0, dist2 = 0;
+    int last_x = -1;
+    int max_len = 0;
+
+    for (int r = 0; r < n; r++) {
+        int val = a[r];
+        if (val == x) {
+            last_x = r;
+        }
+
+        // Expand window 1 (at most K distinct elements)
+        if (val < MAX_VAL) {
+            if (freq1[val] == 0) dist1++;
+            freq1[val]++;
+        }
+
+        // Expand window 2 (at most K-1 distinct elements)
+        if (val < MAX_VAL) {
+            if (freq2[val] == 0) dist2++;
+            freq2[val]++;
+        }
+
+        // Shrink window 1 if distinct elements > K
+        while (dist1 > k && l1 <= r) {
+            int remove_val = a[l1];
+            if (remove_val < MAX_VAL) {
+                freq1[remove_val]--;
+                if (freq1[remove_val] == 0) dist1--;
+            }
+            l1++;
+        }
+
+        // Shrink window 2 if distinct elements > K - 1
+        while (dist2 > k - 1 && l2 <= r) {
+            int remove_val = a[l2];
+            if (remove_val < MAX_VAL) {
+                freq2[remove_val]--;
+                if (freq2[remove_val] == 0) dist2--;
+            }
+            l2++;
+        }
+
+        // If window 1 has exactly K distinct elements, then l2 > l1.
+        // Valid left boundaries that give exactly K distinct elements end at l2 - 1.
+        if (dist1 == k && l1 < l2) {
+            // Check if X is present in the maximum window ending at r
+            if (last_x >= l1) {
+                int len = r - l1 + 1;
+                if (len > max_len) {
+                    max_len = len;
+                }
+            }
+        }
+    }
+
+    printf("%d\n", max_len);
+    free(a);
+}
+
+int main() {
+    setvbuf(stdout, NULL, _IOFBF, 16384);
+    int t;
+    if (scanf("%d", &t) != 1) return 0;
+    while (t--) {
+        solve();
+    }
+    return 0;
+}
