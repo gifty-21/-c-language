@@ -1,0 +1,80 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define INF 1000000000000000000LL // A very large value acting as infinity
+
+void solve() {
+    int n;
+    if (scanf("%d", &n) != 1) return;
+
+    long long* a = (long long*)malloc(n * sizeof(long long));
+    for (int i = 0; i < n; i++) {
+        scanf("%lld", &a[i]);
+    }
+
+    // Trackers for the top two minimum prefix sums with distinct A[L] values
+    long long min1_p = 0;      // P[0] = 0 initially
+    long long min1_a = a[0];   // A[0] is the first starting element
+    
+    long long min2_p = INF;
+    long long min2_a = INF;
+
+    long long max_subarray_sum = -INF;
+    long long current_prefix_sum = a[0];
+
+    for (int r = 1; r < n; r++) {
+        current_prefix_sum += a[r];
+
+        // Evaluate the best good subarray ending at index r
+        if (a[r] != min1_a) {
+            long long current_sum = current_prefix_sum - min1_p;
+            if (current_sum > max_subarray_sum) {
+                max_subarray_sum = current_sum;
+            }
+        } else if (min2_p != INF) {
+            long long current_sum = current_prefix_sum - min2_p;
+            if (current_sum > max_subarray_sum) {
+                max_subarray_sum = current_sum;
+            }
+        }
+
+        // Now, update trackers using the current element as a potential starting position L
+        long long p_prev = current_prefix_sum - a[r]; // This is P[L-1] for L = r
+        long long a_curr = a[r];                      // This is A[L] for L = r
+
+        if (p_prev < min1_p) {
+            if (a_curr != min1_a) {
+                min2_p = min1_p;
+                min2_a = min1_a;
+            }
+            min1_p = p_prev;
+            min1_a = a_curr;
+        } else if (a_curr != min1_a && p_prev < min2_p) {
+            min2_p = p_prev;
+            min2_a = a_curr;
+        } else if (a_curr == min1_a && p_prev < min1_p) {
+            // If the element matches min1 but has a smaller prefix sum, update min1
+            min1_p = p_prev;
+        }
+    }
+
+    if (max_subarray_sum == -INF) {
+        printf("Not Possible\n");
+    } else {
+        printf("%lld\n", max_subarray_sum);
+    }
+
+    free(a);
+}
+
+int main() {
+    // Fast I/O
+    setvbuf(stdout, NULL, _IOFBF, 16384);
+    
+    int t;
+    if (scanf("%d", &t) != 1) return 0;
+    while (t--) {
+        solve();
+    }
+    return 0;
+}
