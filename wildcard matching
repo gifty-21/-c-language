@@ -1,0 +1,38 @@
+#include <stdio.h>
+#include <stdbool.h>
+
+bool isMatch(char* s, char* p) {
+    int sIdx = 0, pIdx = 0;
+    int starIdx = -1, sTmpIdx = -1;
+    
+    while (s[sIdx] != '\0') {
+        // Case 1: Characters match or pattern has '?'
+        if (p[pIdx] == s[sIdx] || p[pIdx] == '?') {
+            sIdx++;
+            pIdx++;
+        }
+        // Case 2: Pattern has '*', mark the star position and backtrack point
+        else if (p[pIdx] == '*') {
+            starIdx = pIdx;
+            sTmpIdx = sIdx;
+            pIdx++; // Advance pattern pointer, assuming '*' matches 0 characters initially
+        }
+        // Case 3: Mismatch, check if we can backtrack to a previous '*'
+        else if (starIdx != -1) {
+            pIdx = starIdx + 1; // Backtrack pattern to the character after '*'
+            sTmpIdx++;          // Let '*' consume one more character from s
+            sIdx = sTmpIdx;     // Restart string match from the updated position
+        }
+        // Case 4: Mismatch and no previous '*' to backtrack to
+        else {
+            return false;
+        }
+    }
+    
+    // Check for remaining characters in pattern; they must all be '*'
+    while (p[pIdx] == '*') {
+        pIdx++;
+    }
+    
+    return p[pIdx] == '\0';
+}
