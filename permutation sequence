@@ -1,0 +1,44 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+char* getPermutation(int n, int k) {
+    // Array to store precomputed factorials up to 9!
+    int factorials[10];
+    factorials[0] = 1;
+    for (int i = 1; i <= n; i++) {
+        factorials[i] = factorials[i - 1] * i;
+    }
+
+    // Create a list of available numbers: "1", "2", ..., "n"
+    int numbers[9];
+    for (int i = 0; i < n; i++) {
+        numbers[i] = i + 1;
+    }
+
+    // Allocate memory for the output string (+1 for the null terminator)
+    char* result = (char*)malloc((n + 1) * sizeof(char));
+    result[n] = '\0';
+
+    // Convert k to 0-indexed
+    k--;
+
+    // Build the permutation digit by digit
+    for (int i = 0; i < n; i++) {
+        // Size of each block for the remaining elements
+        int blockSize = factorials[n - 1 - i];
+        int index = k / blockSize;
+
+        // Append the selected digit to the result string
+        result[i] = numbers[index] + '0';
+
+        // Shift the remaining numbers to fill the gap of the removed element
+        for (int j = index; j < n - 1 - i; j++) {
+            numbers[j] = numbers[j + 1];
+        }
+
+        // Update k for the next iteration
+        k %= blockSize;
+    }
+
+    return result;
+}
