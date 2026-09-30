@@ -1,0 +1,70 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+
+// Global tracking or pass-by-reference structures
+void backtrack(int row, int n, int* queens, bool* cols, bool* diag1, bool* diag2, 
+               char*** result, int* returnSize) {
+    if (row == n) {
+        // Found a valid solution! Allocate memory for this board setup
+        result[*returnSize] = (char**)malloc(n * sizeof(char*));
+        for (int i = 0; i < n; i++) {
+            result[*returnSize][i] = (char*)malloc((n + 1) * sizeof(char));
+            for (int j = 0; j < n; j++) {
+                result[*returnSize][i][j] = (queens[i] == j) ? 'Q' : '.';
+            }
+            result[*returnSize][i][n] = '\0'; // Null-terminate the string
+        }
+        (*returnSize)++;
+        return;
+    }
+
+    for (int col = 0; col < n; col++) {
+        int d1 = row + col;
+        int d2 = row - col + (n - 1); // Offset added to avoid negative indices
+
+        // If this position is under attack, skip it
+        if (cols[col] || diag1[d1] || diag2[d2]) {
+            continue;
+        }
+
+        // Place the queen
+        queens[row] = col;
+        cols[col] = diag1[d1] = diag2[d2] = true;
+
+        // Move to the next row
+        backtrack(row + 1, n, queens, cols, diag1, diag2, result, returnSize);
+
+        // Backtrack (Remove the queen)
+        cols[col] = diag1[d1] = diag2[d2] = false;
+    }
+}
+
+char*** solveNQueens(int n, int* returnSize, int** returnColumnSizes) {
+    // Upper bound for n = 9 is 352 solutions, allocate a safe maximum room (e.g., 500)
+    char*** result = (char***)malloc(500 * sizeof(char**));
+    *returnSize = 0;
+
+    int* queens = (int*)malloc(n * sizeof(int));
+    bool* cols = (bool*)calloc(n, sizeof(bool));
+    bool* diag1 = (bool*)calloc(2 * n, sizeof(bool));
+    bool* diag2 = (bool*)calloc(2 * n, sizeof(bool));
+
+    // Kick off backtracking starting at row 0
+    backtrack(0, n, queens, cols, diag1, diag2, result, returnSize);
+
+    // Populate returnColumnSizes array (every solution board has exactly `n` rows)
+    *returnColumnSizes = (int*)malloc((*returnSize) * sizeof(int));
+    for (int i = 0; i < *returnSize; i++) {
+        (*returnColumnSizes)[i] = n;
+    }
+
+    // Free local tracking buffers
+    free(queens);
+    free(cols);
+    free(diag1);
+    free(diag2);
+
+    return result;
+}
